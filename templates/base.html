@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Portfolio & Skills Showcase — Full-Stack Python/Django Developer" />
+  <meta name="csrf-token" content="{{ csrf_token }}" />
+  <title>{% block title %}Portfolio Showcase{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/main.css" />
+  <link rel="stylesheet" href="/static/css/components.css" />
+</head>
+<body class="layout">
+
+  <button
+    class="sidebar-toggle"
+    id="sidebarToggle"
+    aria-label="Toggle navigation menu"
+    aria-expanded="false"
+    aria-controls="sidebar"
+  >
+    <span class="hamburger-line"></span>
+    <span class="hamburger-line"></span>
+    <span class="hamburger-line"></span>
+  </button>
+
+  <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+    <div class="sidebar__header">
+      <div class="sidebar__logo" aria-label="Portfolio logo">
+        <span class="sidebar__logo-icon" aria-hidden="true">⬡</span>
+        <span class="sidebar__logo-text">Portfolio</span>
+      </div>
+    </div>
+
+    <nav class="sidebar__nav">
+      <ul class="sidebar__nav-list" role="list">
+        <li class="sidebar__nav-item">
+          <a href="/" class="sidebar__nav-link" data-page="dashboard" aria-label="Dashboard">
+            <span class="sidebar__nav-icon" aria-hidden="true">◈</span>
+            <span class="sidebar__nav-label">Dashboard</span>
+          </a>
+        </li>
+        <li class="sidebar__nav-item">
+          <a href="/data-grid/" class="sidebar__nav-link" data-page="data-grid" aria-label="Data Grid">
+            <span class="sidebar__nav-icon" aria-hidden="true">⊞</span>
+            <span class="sidebar__nav-label">Data Grid</span>
+          </a>
+        </li>
+        <li class="sidebar__nav-item">
+          <a href="/realtime/" class="sidebar__nav-link" data-page="realtime" aria-label="Real-Time Terminal">
+            <span class="sidebar__nav-icon" aria-hidden="true">◉</span>
+            <span class="sidebar__nav-label">Real-Time</span>
+          </a>
+        </li>
+        <li class="sidebar__nav-item">
+          <a href="/media/" class="sidebar__nav-link" data-page="media" aria-label="Media Upload">
+            <span class="sidebar__nav-icon" aria-hidden="true">⬡</span>
+            <span class="sidebar__nav-label">Media Upload</span>
+          </a>
+        </li>
+        <li class="sidebar__nav-item">
+          <a href="/security/" class="sidebar__nav-link" data-page="security" aria-label="Security Playground">
+            <span class="sidebar__nav-icon" aria-hidden="true">⬢</span>
+            <span class="sidebar__nav-label">Security</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="sidebar__footer">
+      <button
+        class="theme-toggle"
+        id="themeToggle"
+        aria-label="Toggle dark/light mode"
+        title="Toggle theme"
+      >
+        <span class="theme-toggle__icon" aria-hidden="true" id="themeIcon">☀</span>
+        <span class="theme-toggle__label" id="themeLabel">Light Mode</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+  <main class="main-content" id="mainContent" role="main" aria-live="polite">
+    <div class="page-transition" id="pageContainer">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <div
+    class="toast-container"
+    id="toastContainer"
+    role="region"
+    aria-label="Notifications"
+    aria-live="assertive"
+    aria-atomic="true"
+  ></div>
+
+  <dialog class="modal" id="globalModal" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal__content">
+      <header class="modal__header">
+        <h2 class="modal__title" id="modalTitle">Modal</h2>
+        <button class="modal__close" id="modalClose" aria-label="Close modal">✕</button>
+      </header>
+      <div class="modal__body" id="modalBody"></div>
+      <footer class="modal__footer" id="modalFooter"></footer>
+    </div>
+  </dialog>
+
+  <script type="module" src="/static/js/app.js"></script>
+</body>
+</html>

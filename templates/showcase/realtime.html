@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Real-Time Terminal — Portfolio Showcase{% endblock %}
+{% block content %}
+<section class="page page--realtime" aria-labelledby="realtimeHeading">
+
+  <header class="page__header">
+    <h1 class="page__title" id="realtimeHeading">Real-Time Terminal</h1>
+    <p class="page__subtitle">WebSocket-powered live chat and server status monitor</p>
+  </header>
+
+  <div class="realtime-layout">
+    <div class="terminal-panel">
+      <div class="terminal-header" role="banner">
+        <div class="terminal-dots" aria-hidden="true">
+          <span class="dot dot--red"></span>
+          <span class="dot dot--yellow"></span>
+          <span class="dot dot--green"></span>
+        </div>
+        <span class="terminal-title">portfolio@server:~$</span>
+        <div class="terminal-status">
+          <span
+            class="ws-indicator"
+            id="wsIndicator"
+            role="status"
+            aria-live="polite"
+            aria-label="WebSocket connection status: disconnected"
+          >
+            <span class="ws-dot ws-dot--disconnected" aria-hidden="true"></span>
+            <span id="wsStatusText">Disconnected</span>
+          </span>
+        </div>
+      </div>
+
+      <div
+        class="terminal-output"
+        id="terminalOutput"
+        role="log"
+        aria-label="Terminal output"
+        aria-live="polite"
+        aria-relevant="additions"
+        tabindex="0"
+      ></div>
+
+      <form class="terminal-input-row" id="terminalForm" aria-label="Send message">
+        <label for="terminalInput" class="sr-only">Message input</label>
+        <span class="terminal-prompt" aria-hidden="true">❯</span>
+        <input
+          type="text"
+          id="terminalInput"
+          class="terminal-input"
+          placeholder="Type a message and press Enter..."
+          autocomplete="off"
+          maxlength="2000"
+          aria-label="Message to send"
+        />
+        <button type="submit" class="btn btn--primary btn--sm" aria-label="Send message">Send</button>
+      </form>
+    </div>
+
+    <aside class="server-status-panel" aria-labelledby="serverStatusHeading">
+      <h2 class="panel-title" id="serverStatusHeading">Server Status</h2>
+      <div class="status-metrics" id="statusMetrics" aria-live="polite">
+        <div class="status-metric">
+          <span class="status-metric__label">CPU</span>
+          <span class="status-metric__value" id="rtCpu">—</span>
+        </div>
+        <div class="status-metric">
+          <span class="status-metric__label">Memory</span>
+          <span class="status-metric__value" id="rtMem">—</span>
+        </div>
+        <div class="status-metric">
+          <span class="status-metric__label">Last Update</span>
+          <span class="status-metric__value" id="rtTime">—</span>
+        </div>
+      </div>
+      <div class="connection-info">
+        <h3 class="panel-subtitle">Connection Info</h3>
+        <dl class="info-list">
+          <dt>Room</dt>
+          <dd id="infoRoom">general</dd>
+          <dt>Messages</dt>
+          <dd id="infoMsgCount" aria-live="polite">0</dd>
+          <dt>Reconnects</dt>
+          <dd id="infoReconnects" aria-live="polite">0</dd>
+        </dl>
+      </div>
+    </aside>
+  </div>
+
+</section>
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Security Playground — Portfolio Showcase{% endblock %}
+{% block content %}
+<section class="page page--security" aria-labelledby="securityHeading">
+
+  <header class="page__header">
+    <h1 class="page__title" id="securityHeading">Security Playground</h1>
+    <p class="page__subtitle">Live demonstration of implemented security measures</p>
+  </header>
+
+  <div class="security-grid">
+
+    <article class="card security-card" aria-labelledby="xssHeading">
+      <header class="card__header">
+        <h2 class="card__title" id="xssHeading">XSS Protection Test</h2>
+        <span class="card__badge card__badge--secure">Protected</span>
+      </header>
+      <div class="card__body">
+        <p class="card__description">
+          Input is sanitized server-side via <code>bleach</code> and rendered safely
+          via <code>textContent</code> (never <code>innerHTML</code>) on the frontend.
+        </p>
+        <form id="xssForm" aria-label="XSS test form" novalidate>
+          <div class="form-group">
+            <label for="xssInput" class="form-label">Test Input</label>
+            <input
+              type="text"
+              id="xssInput"
+              class="input"
+              placeholder='Try: <script>alert("xss")</script>'
+              aria-label="XSS test input"
+              maxlength="500"
+            />
+          </div>
+          <button type="submit" class="btn btn--primary" aria-label="Test XSS protection">Test Sanitization</button>
+        </form>
+        <div class="result-box" id="xssResult" aria-live="polite" aria-label="XSS test result" hidden>
+          <div class="result-box__row">
+            <span class="result-box__label">Raw Input:</span>
+            <code class="result-box__value" id="xssRawOutput"></code>
+          </div>
+          <div class="result-box__row">
+            <span class="result-box__label">Sanitized:</span>
+            <code class="result-box__value result-box__value--safe" id="xssSafeOutput"></code>
+          </div>
+          <div class="result-box__row">
+            <span class="result-box__label">Was Sanitized:</span>
+            <span class="result-box__badge" id="xssBadge"></span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="card security-card" aria-labelledby="rateLimitHeading">
+      <header class="card__header">
+        <h2 class="card__title" id="rateLimitHeading">Rate Limit Test</h2>
+        <span class="card__badge card__badge--warning">5 req/min</span>
+      </header>
+      <div class="card__body">
+        <p class="card__description">
+          Click rapidly to trigger HTTP 429. The middleware tracks requests per IP
+          using Redis with a sliding window algorithm.
+        </p>
+        <div class="rate-limit-demo">
+          <button class="btn btn--primary" id="rateLimitBtn" aria-label="Test rate limiting">
+            Send Request
+          </button>
+          <div class="rate-limit-counter" aria-live="polite" aria-label="Request counter">
+            <span class="counter-label">Requests:</span>
+            <span class="counter-value" id="rlRequestCount">0</span>
+            <span class="counter-label">/ 5</span>
+          </div>
+        </div>
+        <div class="cooldown-display" id="cooldownDisplay" hidden aria-live="assertive">
+          <span class="cooldown-icon" aria-hidden="true">⏱</span>
+          <span>Rate limited! Retry in </span>
+          <span class="cooldown-timer" id="cooldownTimer">60</span>
+          <span>s</span>
+        </div>
+        <div class="request-log" id="rlLog" role="log" aria-label="Request log" aria-live="polite"></div>
+      </div>
+    </article>
+
+    <article class="card security-card security-card--wide" aria-labelledby="headersHeading">
+      <header class="card__header">
+        <h2 class="card__title" id="headersHeading">Security Headers</h2>
+        <button class="btn btn--ghost btn--sm" id="loadHeadersBtn" aria-label="Load security headers">Load Headers</button>
+      </header>
+      <div class="card__body">
+        <p class="card__description">
+          Fetched from <code>/api/security/headers/</code> — shows the active security
+          configuration for this Django instance.
+        </p>
+        <dl class="headers-list" id="headersList" aria-label="Security headers" aria-live="polite">
+          <div class="headers-placeholder">
+            <span aria-hidden="true">⬢</span> Click "Load Headers" to inspect security configuration
+          </div>
+        </dl>
+      </div>
+    </article>
+
+  </div>
+
+</section>
+{% endblock %}

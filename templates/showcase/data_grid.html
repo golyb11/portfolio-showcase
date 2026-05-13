@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Data Grid — Portfolio Showcase{% endblock %}
+{% block content %}
+<section class="page page--grid" aria-labelledby="gridHeading">
+
+  <header class="page__header">
+    <h1 class="page__title" id="gridHeading">Advanced Data Grid</h1>
+    <p class="page__subtitle">CRUD operations, inline editing, drag-and-drop reordering</p>
+  </header>
+
+  <div class="toolbar" role="toolbar" aria-label="Data grid controls">
+    <div class="toolbar__search">
+      <label for="gridSearch" class="sr-only">Search tasks</label>
+      <input
+        type="search"
+        id="gridSearch"
+        class="input input--search"
+        placeholder="Search tasks..."
+        aria-label="Search tasks"
+        autocomplete="off"
+      />
+    </div>
+    <div class="toolbar__filters">
+      <label for="filterStatus" class="sr-only">Filter by status</label>
+      <select id="filterStatus" class="select" aria-label="Filter by status">
+        <option value="">All Statuses</option>
+        <option value="pending">Pending</option>
+        <option value="in_progress">In Progress</option>
+        <option value="completed">Completed</option>
+        <option value="failed">Failed</option>
+      </select>
+      <label for="filterPriority" class="sr-only">Filter by priority</label>
+      <select id="filterPriority" class="select" aria-label="Filter by priority">
+        <option value="">All Priorities</option>
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+        <option value="critical">Critical</option>
+      </select>
+    </div>
+    <div class="toolbar__actions">
+      <button class="btn btn--primary" id="addTaskBtn" aria-label="Add new task">
+        <span aria-hidden="true">+</span> Add Task
+      </button>
+      <button class="btn btn--secondary" id="exportCsvBtn" aria-label="Export tasks to CSV">
+        <span aria-hidden="true">↓</span> Export CSV
+      </button>
+    </div>
+  </div>
+
+  <div class="table-container" role="region" aria-label="Tasks table" aria-live="polite">
+    <table class="data-table" id="tasksTable" aria-label="Task logs">
+      <thead>
+        <tr>
+          <th scope="col" class="col-drag" aria-label="Drag to reorder"></th>
+          <th scope="col" class="col-title sortable" data-sort="title" tabindex="0" aria-sort="none">
+            Title <span class="sort-icon" aria-hidden="true">⇅</span>
+          </th>
+          <th scope="col" class="col-status sortable" data-sort="status" tabindex="0" aria-sort="none">
+            Status <span class="sort-icon" aria-hidden="true">⇅</span>
+          </th>
+          <th scope="col" class="col-priority sortable" data-sort="priority" tabindex="0" aria-sort="none">
+            Priority <span class="sort-icon" aria-hidden="true">⇅</span>
+          </th>
+          <th scope="col" class="col-assigned">Assigned To</th>
+          <th scope="col" class="col-due sortable" data-sort="due_date" tabindex="0" aria-sort="none">
+            Due Date <span class="sort-icon" aria-hidden="true">⇅</span>
+          </th>
+          <th scope="col" class="col-actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tasksTableBody" aria-live="polite">
+        <tr class="table-loading-row">
+          <td colspan="7" class="table-loading" aria-label="Loading tasks">
+            <div class="loading-spinner" aria-hidden="true"></div>
+            Loading tasks...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <nav class="pagination" id="gridPagination" aria-label="Table pagination">
+    <button class="btn btn--ghost" id="prevPage" aria-label="Previous page" disabled>← Prev</button>
+    <span class="pagination__info" id="paginationInfo" aria-live="polite">Page 1</span>
+    <button class="btn btn--ghost" id="nextPage" aria-label="Next page">Next →</button>
+  </nav>
+
+  <p class="hint-text" aria-label="Usage hint">
+    <span aria-hidden="true">💡</span> Double-click any row to edit inline. Drag the ⠿ handle to reorder.
+  </p>
+
+</section>
+{% endblock %}
