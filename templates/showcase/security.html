@@ -32,7 +32,10 @@
               maxlength="500"
             />
           </div>
-          <button type="submit" class="btn btn--primary" aria-label="Test XSS protection">Test Sanitization</button>
+          <button type="submit" class="btn btn--primary" aria-label="Test XSS protection">
+            <svg class="icon" aria-hidden="true"><use href="#icon-shield"></use></svg>
+            Test Sanitization
+          </button>
         </form>
         <div class="result-box" id="xssResult" aria-live="polite" aria-label="XSS test result" hidden>
           <div class="result-box__row">
@@ -72,7 +75,7 @@
           </div>
         </div>
         <div class="cooldown-display" id="cooldownDisplay" hidden aria-live="assertive">
-          <span class="cooldown-icon" aria-hidden="true">⏱</span>
+          <svg class="icon cooldown-icon" aria-hidden="true"><use href="#icon-clock"></use></svg>
           <span>Rate limited! Retry in </span>
           <span class="cooldown-timer" id="cooldownTimer">60</span>
           <span>s</span>
@@ -84,7 +87,10 @@
     <article class="card security-card security-card--wide" aria-labelledby="headersHeading">
       <header class="card__header">
         <h2 class="card__title" id="headersHeading">Security Headers</h2>
-        <button class="btn btn--ghost btn--sm" id="loadHeadersBtn" aria-label="Load security headers">Load Headers</button>
+        <button class="btn btn--ghost btn--sm" id="loadHeadersBtn" aria-label="Load security headers">
+          <svg class="icon" aria-hidden="true"><use href="#icon-refresh"></use></svg>
+          Load Headers
+        </button>
       </header>
       <div class="card__body">
         <p class="card__description">
@@ -93,7 +99,7 @@
         </p>
         <dl class="headers-list" id="headersList" aria-label="Security headers" aria-live="polite">
           <div class="headers-placeholder">
-            <span aria-hidden="true">⬢</span> Click "Load Headers" to inspect security configuration
+            Click "Load Headers" to inspect security configuration
           </div>
         </dl>
       </div>

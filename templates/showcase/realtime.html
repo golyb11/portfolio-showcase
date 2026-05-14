@@ -43,7 +43,9 @@
 
       <form class="terminal-input-row" id="terminalForm" aria-label="Send message">
         <label for="terminalInput" class="sr-only">Message input</label>
-        <span class="terminal-prompt" aria-hidden="true">❯</span>
+        <span class="terminal-prompt" aria-hidden="true">
+          <svg class="icon" width="14" height="14"><use href="#icon-terminal"></use></svg>
+        </span>
         <input
           type="text"
           id="terminalInput"
@@ -53,7 +55,10 @@
           maxlength="2000"
           aria-label="Message to send"
         />
-        <button type="submit" class="btn btn--primary btn--sm" aria-label="Send message">Send</button>
+        <button type="submit" class="btn btn--primary btn--sm" aria-label="Send message">
+          <svg class="icon" aria-hidden="true"><use href="#icon-send"></use></svg>
+          Send
+        </button>
       </form>
     </div>
 

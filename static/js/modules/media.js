@@ -6,7 +6,8 @@ let uploading = false;
 export function initMediaUpload() {
   setupDropZone();
   loadGallery();
-  document.getElementById('refreshGallery')?.addEventListener('click', loadGallery);
+  const refresh = document.getElementById('refreshGallery');
+  if (refresh) refresh.addEventListener('click', loadGallery);
 }
 
 function setupDropZone() {
@@ -14,42 +15,33 @@ function setupDropZone() {
   const fileInput = document.getElementById('fileInput');
   if (!dropZone || !fileInput) return;
 
-  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    dropZone.addEventListener(eventName, (e) => {
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach((evt) => {
+    dropZone.addEventListener(evt, (e) => {
       e.preventDefault();
       e.stopPropagation();
     });
   });
 
-  ['dragenter', 'dragover'].forEach(eventName => {
-    dropZone.addEventListener(eventName, () => {
-      dropZone.classList.add('dragover');
-    });
+  ['dragenter', 'dragover'].forEach((evt) => {
+    dropZone.addEventListener(evt, () => dropZone.classList.add('dragover'));
   });
-
-  ['dragleave', 'drop'].forEach(eventName => {
-    dropZone.addEventListener(eventName, () => {
-      dropZone.classList.remove('dragover');
-    });
+  ['dragleave', 'drop'].forEach((evt) => {
+    dropZone.addEventListener(evt, () => dropZone.classList.remove('dragover'));
   });
 
   dropZone.addEventListener('drop', (e) => {
-    const files = e.dataTransfer?.files;
-    if (files && files.length) {
-      handleFiles(files);
-    }
+    const files = e.dataTransfer && e.dataTransfer.files;
+    if (files && files.length) handleFiles(files);
   });
 
   fileInput.addEventListener('change', () => {
-    if (fileInput.files.length) {
+    if (fileInput.files && fileInput.files.length) {
       handleFiles(fileInput.files);
       fileInput.value = '';
     }
   });
 
-  dropZone.addEventListener('click', () => {
-    fileInput.click();
-  });
+  dropZone.addEventListener('click', () => fileInput.click());
 
   dropZone.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -64,13 +56,16 @@ function handleFiles(fileList) {
     showToast({ type: 'warning', message: 'Upload already in progress' });
     return;
   }
-
   const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
   const maxSize = 5 * 1024 * 1024;
 
-  Array.from(fileList).forEach(file => {
+  Array.from(fileList).forEach((file) => {
     if (!allowedTypes.includes(file.type)) {
-      showToast({ type: 'error', title: 'Invalid type', message: `${file.name}: only JPG, PNG, GIF, WebP allowed` });
+      showToast({
+        type: 'error',
+        title: 'Invalid type',
+        message: `${file.name}: only JPG, PNG, GIF, WebP allowed`,
+      });
       return;
     }
     if (file.size > maxSize) {
@@ -84,132 +79,180 @@ function handleFiles(fileList) {
 function uploadFile(file) {
   uploading = true;
   const queue = document.getElementById('uploadQueue');
-  if (!queue) return;
+  if (!queue) {
+    uploading = false;
+    return;
+  }
 
+  const itemId = `upload-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const item = document.createElement('div');
   item.className = 'upload-item';
-  const itemId = `upload-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   item.id = itemId;
 
-  const sizeStr = formatSize(file.size);
-  item.innerHTML = `
-    <img class="upload-item__preview" alt="Preview" />
-    <div class="upload-item__info">
-      <div class="upload-item__name">${escapeHTML(file.name)}</div>
-      <div class="upload-item__size">${sizeStr}</div>
-      <div class="upload-item__progress"><div class="upload-item__progress-bar" style="width:0%"></div></div>
-    </div>
-    <span class="upload-item__status">Uploading...</span>
-  `;
+  const previewImg = document.createElement('img');
+  previewImg.className = 'upload-item__preview';
+  previewImg.alt = 'Preview';
+  item.appendChild(previewImg);
+
+  const info = document.createElement('div');
+  info.className = 'upload-item__info';
+
+  const nameDiv = document.createElement('div');
+  nameDiv.className = 'upload-item__name';
+  nameDiv.textContent = file.name;
+  info.appendChild(nameDiv);
+
+  const sizeDiv = document.createElement('div');
+  sizeDiv.className = 'upload-item__size';
+  sizeDiv.textContent = formatSize(file.size);
+  info.appendChild(sizeDiv);
+
+  const progressWrap = document.createElement('div');
+  progressWrap.className = 'upload-item__progress';
+  const progressBar = document.createElement('div');
+  progressBar.className = 'upload-item__progress-bar';
+  progressBar.style.width = '0%';
+  progressWrap.appendChild(progressBar);
+  info.appendChild(progressWrap);
+
+  item.appendChild(info);
+
+  const status = document.createElement('span');
+  status.className = 'upload-item__status';
+  status.textContent = 'Uploading...';
+  item.appendChild(status);
 
   queue.appendChild(item);
 
   const reader = new FileReader();
   reader.onload = (e) => {
-    const img = item.querySelector('.upload-item__preview');
-    if (img) img.src = e.target.result;
+    previewImg.src = e.target.result;
   };
   reader.readAsDataURL(file);
 
   const formData = new FormData();
   formData.append('file', file);
 
-  api.upload('/media/', formData, (percent) => {
-    const bar = item.querySelector('.upload-item__progress-bar');
-    if (bar) bar.style.width = `${percent}%`;
-  })
+  api
+    .upload('/media/', formData, (percent) => {
+      progressBar.style.width = `${percent}%`;
+    })
     .then(() => {
-      const bar = item.querySelector('.upload-item__progress-bar');
-      const status = item.querySelector('.upload-item__status');
-      if (bar) { bar.style.width = '100%'; bar.classList.add('upload-item__progress-bar--success'); }
-      if (status) status.textContent = '\u2713 Done';
+      progressBar.style.width = '100%';
+      progressBar.classList.add('upload-item__progress-bar--success');
+      status.textContent = 'Done';
       showToast({ type: 'success', message: `${file.name} uploaded` });
-      uploading = false;
       loadGallery();
     })
     .catch((error) => {
-      const bar = item.querySelector('.upload-item__progress-bar');
-      const status = item.querySelector('.upload-item__status');
-      if (bar) bar.classList.add('upload-item__progress-bar--error');
-      if (status) status.textContent = `\u2717 ${error.message}`;
+      console.error('[Media] upload failed:', error);
+      progressBar.classList.add('upload-item__progress-bar--error');
+      status.textContent = `Error: ${error.message}`;
       showToast({ type: 'error', title: 'Upload failed', message: error.message });
-      uploading = false;
     })
     .finally(() => {
+      uploading = false;
       setTimeout(() => {
         const el = document.getElementById(itemId);
         if (el) el.remove();
-      }, 8000);
+      }, 6000);
     });
 }
 
 async function loadGallery() {
   const gallery = document.getElementById('mediaGallery');
   if (!gallery) return;
-  gallery.innerHTML = '<div class="gallery-loading"><div class="loading-spinner"></div></div>';
+
+  gallery.innerHTML = '';
+  for (let i = 0; i < 8; i += 1) {
+    const sk = document.createElement('div');
+    sk.className = 'gallery-item gallery-item--skeleton';
+    gallery.appendChild(sk);
+  }
 
   try {
     const response = await api.get('/media/?page_size=100');
-    if (response.status === 'success') {
-      const items = Array.isArray(response.data) ? response.data : (response.data?.results || []);
+    if (response && response.status === 'success') {
+      const items = Array.isArray(response.data)
+        ? response.data
+        : response.data && response.data.results
+          ? response.data.results
+          : [];
       renderGallery(gallery, items);
     }
   } catch (error) {
-    gallery.innerHTML = '<div class="empty-state"><span class="empty-state__icon">\u26A0</span><span class="empty-state__text">Failed to load gallery</span></div>';
-    showToast({ type: 'error', message: 'Failed to load media gallery' });
+    console.error('[Media] loadGallery failed:', error);
+    const msg = error.status === 401
+      ? 'Sign in to view uploaded media.'
+      : 'Failed to load gallery.';
+    gallery.innerHTML = '';
+    const empty = document.createElement('div');
+    empty.className = 'empty-state empty-state--gallery';
+    const icon = document.createElement('span');
+    icon.className = 'empty-state__icon';
+    icon.innerHTML = '<svg class="icon icon--xl" aria-hidden="true"><use href="#icon-shield"></use></svg>';
+    const text = document.createElement('span');
+    text.className = 'empty-state__text';
+    text.textContent = msg;
+    empty.appendChild(icon);
+    empty.appendChild(text);
+    gallery.appendChild(empty);
   }
 }
 
 function renderGallery(container, items) {
+  container.innerHTML = '';
+
   if (!items.length) {
-    container.innerHTML = '<div class="empty-state"><span class="empty-state__icon">\u2B21</span><span class="empty-state__text">No media uploaded yet</span></div>';
+    const empty = document.createElement('div');
+    empty.className = 'empty-state empty-state--gallery';
+    const icon = document.createElement('span');
+    icon.className = 'empty-state__icon';
+    icon.innerHTML = '<svg class="icon icon--xl" aria-hidden="true"><use href="#icon-image"></use></svg>';
+    const text = document.createElement('span');
+    text.className = 'empty-state__text';
+    text.textContent = 'No media uploaded yet. Drop some images above.';
+    empty.appendChild(icon);
+    empty.appendChild(text);
+    container.appendChild(empty);
     return;
   }
 
-  container.innerHTML = items.map(item => {
-    const imgUrl = item.thumbnail_url || item.file_url || '';
-    return `
-      <div class="gallery-item" role="listitem">
-        <img src="${imgUrl}" alt="${escapeHTML(item.original_filename)}" loading="lazy" />
-        <div class="gallery-item__overlay">
-          <span class="gallery-item__name">${escapeHTML(item.original_filename)}</span>
-          <span class="gallery-item__size">${formatSize(item.file_size)}</span>
-        </div>
-      </div>`;
-  }).join('');
+  items.forEach((item) => {
+    const tile = document.createElement('div');
+    tile.className = 'gallery-item';
+    tile.setAttribute('role', 'listitem');
 
-  container.querySelectorAll('.gallery-item img').forEach(img => {
-    img.addEventListener('click', () => {
-      const full = itemFromImage(img);
-      if (full) {
-        const w = window.open('', '_blank');
-        if (w) {
-          w.document.write(`<img src="${full}" style="max-width:100%;max-height:100vh;" />`);
-        }
-      }
-    });
+    const img = document.createElement('img');
+    img.loading = 'lazy';
+    img.alt = item.original_filename || 'Uploaded image';
+    img.src = item.thumbnail_url || item.file_url || '';
     img.addEventListener('error', () => {
-      img.style.display = 'none';
+      tile.classList.add('gallery-item--broken');
     });
+
+    const overlay = document.createElement('div');
+    overlay.className = 'gallery-item__overlay';
+
+    const name = document.createElement('span');
+    name.className = 'gallery-item__name';
+    name.textContent = item.original_filename;
+    overlay.appendChild(name);
+
+    const size = document.createElement('span');
+    size.className = 'gallery-item__size';
+    size.textContent = formatSize(item.file_size);
+    overlay.appendChild(size);
+
+    tile.appendChild(img);
+    tile.appendChild(overlay);
+    container.appendChild(tile);
   });
 }
 
-function itemFromImage(img) {
-  const container = img.closest('.gallery-item');
-  if (!container) return null;
-  const items = [...document.querySelectorAll('.gallery-item')];
-  const idx = items.indexOf(container);
-  return null;
-}
-
 function formatSize(bytes) {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
-}
-
-function escapeHTML(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
+  const n = Number(bytes) || 0;
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(2)} MB`;
 }

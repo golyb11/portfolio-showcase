@@ -8,7 +8,8 @@ let secondsLeft = 0;
 export function initSecurity() {
   setupXSSTest();
   setupRateLimitTest();
-  document.getElementById('loadHeadersBtn')?.addEventListener('click', loadSecurityHeaders);
+  const headersBtn = document.getElementById('loadHeadersBtn');
+  if (headersBtn) headersBtn.addEventListener('click', loadSecurityHeaders);
 }
 
 function setupXSSTest() {
@@ -18,14 +19,15 @@ function setupXSSTest() {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const input = document.getElementById('xssInput');
-    const rawInput = input?.value || '';
+    const rawInput = input ? input.value : '';
 
     try {
       const response = await api.post('/security/xss-test/', { input: rawInput });
-      if (response.status === 'success' && response.data) {
+      if (response && response.status === 'success' && response.data) {
         displayXSSResult(rawInput, response.data);
       }
     } catch (error) {
+      console.error('[Security] XSS test failed:', error);
       showToast({ type: 'error', message: error.message });
     }
   });
@@ -42,10 +44,10 @@ function displayXSSResult(rawInput, data) {
   if (safeOutput) safeOutput.textContent = data.sanitized_output;
   if (badge) {
     if (data.was_sanitized) {
-      badge.textContent = 'YES \u2014 Sanitized';
+      badge.textContent = 'YES — Sanitized';
       badge.className = 'result-box__badge result-box__badge--yes';
     } else {
-      badge.textContent = 'NO \u2014 Clean input';
+      badge.textContent = 'NO — Clean input';
       badge.className = 'result-box__badge result-box__badge--no';
     }
   }
@@ -60,16 +62,17 @@ function setupRateLimitTest() {
     btn.disabled = true;
     try {
       const response = await api.post('/security/rate-limit-test/', {});
-      rlCount++;
+      rlCount += 1;
       updateRlCounter();
-      addLogEntry(true, response.data?.message || 'Request allowed');
+      addLogEntry(true, (response && response.data && response.data.message) || 'Request allowed');
     } catch (error) {
       if (error.status === 429) {
-        rlCount++;
+        rlCount += 1;
         updateRlCounter();
         addLogEntry(false, `Rate limited: ${error.message}`);
         startCooldown(error.retryAfter || 60);
       } else {
+        console.error('[Security] rate limit test failed:', error);
         addLogEntry(false, error.message);
       }
     } finally {
@@ -80,15 +83,12 @@ function setupRateLimitTest() {
 
 function updateRlCounter() {
   const el = document.getElementById('rlRequestCount');
-  if (el) {
-    el.textContent = rlCount;
-    if (rlCount >= 5) {
-      el.style.color = 'var(--color-danger)';
-    }
-  }
-
-  if (rlCount >= 5 && !cooldownTimer) {
-    document.getElementById('cooldownDisplay').hidden = false;
+  if (!el) return;
+  el.textContent = String(rlCount);
+  if (rlCount >= 5) {
+    el.classList.add('counter-value--danger');
+  } else {
+    el.classList.remove('counter-value--danger');
   }
 }
 
@@ -99,12 +99,12 @@ function startCooldown(seconds) {
 
   secondsLeft = seconds;
   if (display) display.hidden = false;
-  if (timer) timer.textContent = secondsLeft;
+  if (timer) timer.textContent = String(secondsLeft);
   if (btn) btn.disabled = true;
 
   cooldownTimer = setInterval(() => {
-    secondsLeft--;
-    if (timer) timer.textContent = secondsLeft;
+    secondsLeft -= 1;
+    if (timer) timer.textContent = String(secondsLeft);
     if (secondsLeft <= 0) {
       clearInterval(cooldownTimer);
       cooldownTimer = null;
@@ -131,46 +131,58 @@ function addLogEntry(success, message) {
 async function loadSecurityHeaders() {
   const container = document.getElementById('headersList');
   if (!container) return;
-  container.innerHTML = '<div class="headers-placeholder">Loading...</div>';
+  container.innerHTML = '';
+  const loading = document.createElement('div');
+  loading.className = 'headers-placeholder';
+  loading.textContent = 'Loading...';
+  container.appendChild(loading);
 
   try {
     const response = await api.get('/security/headers/');
-    if (response.status === 'success' && response.data) {
+    if (response && response.status === 'success' && response.data) {
       renderHeaders(container, response.data);
     }
   } catch (error) {
-    container.innerHTML = `<div class="headers-placeholder">Failed to load: ${escapeHTML(error.message)}</div>`;
+    console.error('[Security] loadHeaders failed:', error);
+    container.innerHTML = '';
+    const placeholder = document.createElement('div');
+    placeholder.className = 'headers-placeholder';
+    placeholder.textContent = `Failed to load: ${error.message}`;
+    container.appendChild(placeholder);
     showToast({ type: 'error', message: 'Failed to load security headers' });
   }
 }
 
 function renderHeaders(container, data) {
   const settings = [
-    { label: 'DEBUG Mode', value: data.debug_mode ? 'ON (disable in production!)' : 'OFF' },
-    { label: 'X-Frame-Options', value: data.x_frame_options },
-    { label: 'X-Content-Type-Options', value: data.secure_content_type_nosniff ? 'nosniff' : 'Not set' },
-    { label: 'X-XSS-Protection', value: data.secure_browser_xss_filter ? '1; mode=block' : 'Not set' },
-    { label: 'Secure SSL Redirect', value: data.secure_ssl_redirect ? 'Yes' : 'No (DEBUG mode)' },
-    { label: 'Session Cookie Secure', value: data.session_cookie_secure ? 'Yes' : 'No (DEBUG mode)' },
-    { label: 'CSRF Cookie Secure', value: data.csrf_cookie_secure ? 'Yes' : 'No (DEBUG mode)' },
+    { label: 'DEBUG Mode', value: data.debug_mode ? 'ON (disable in production!)' : 'OFF', ok: !data.debug_mode },
+    { label: 'X-Frame-Options', value: data.x_frame_options, ok: data.x_frame_options === 'DENY' },
+    { label: 'X-Content-Type-Options', value: data.secure_content_type_nosniff ? 'nosniff' : 'Not set', ok: !!data.secure_content_type_nosniff },
+    { label: 'X-XSS-Protection', value: data.secure_browser_xss_filter ? '1; mode=block' : 'Not set', ok: !!data.secure_browser_xss_filter },
+    { label: 'Secure SSL Redirect', value: data.secure_ssl_redirect ? 'Yes' : 'No (DEBUG mode)', ok: !!data.secure_ssl_redirect },
+    { label: 'Session Cookie Secure', value: data.session_cookie_secure ? 'Yes' : 'No (DEBUG mode)', ok: !!data.session_cookie_secure },
+    { label: 'CSRF Cookie Secure', value: data.csrf_cookie_secure ? 'Yes' : 'No (DEBUG mode)', ok: !!data.csrf_cookie_secure },
   ];
 
-  const headerItems = data.headers || {};
-  const headerEntries = Object.entries(headerItems);
+  container.innerHTML = '';
 
-  let html = '';
-  settings.forEach(s => {
-    html += `<dt>${escapeHTML(s.label)}</dt><dd>${escapeHTML(String(s.value))}</dd>`;
+  settings.forEach((s) => {
+    const dt = document.createElement('dt');
+    dt.textContent = s.label;
+    const dd = document.createElement('dd');
+    dd.textContent = String(s.value);
+    dd.classList.add(s.ok ? 'headers-list__value--ok' : 'headers-list__value--warn');
+    container.appendChild(dt);
+    container.appendChild(dd);
   });
-  headerEntries.forEach(([key, val]) => {
-    html += `<dt>${escapeHTML(key)}</dt><dd>${escapeHTML(String(val))}</dd>`;
+
+  const headers = data.headers || {};
+  Object.entries(headers).forEach(([key, val]) => {
+    const dt = document.createElement('dt');
+    dt.textContent = key;
+    const dd = document.createElement('dd');
+    dd.textContent = String(val);
+    container.appendChild(dt);
+    container.appendChild(dd);
   });
-
-  container.innerHTML = html;
-}
-
-function escapeHTML(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
 }

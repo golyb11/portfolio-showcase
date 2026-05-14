@@ -1,5 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from apps.showcase import views as showcase_views
 from . import views
 
 router = DefaultRouter()
@@ -13,5 +14,8 @@ urlpatterns = [
     path("security/rate-limit-test/", views.rate_limit_test, name="rate-limit-test"),
     path("security/xss-test/", views.xss_test, name="xss-test"),
     path("system/metrics/", views.system_metrics, name="system-metrics"),
-    path("auth/", include("rest_framework.urls")),
+    path("auth/login/", showcase_views.api_login, name="api-login"),
+    path("auth/logout/", showcase_views.api_logout, name="api-logout"),
+    path("auth/user/", showcase_views.current_user, name="current-user"),
+    path("auth/browsable/", include("rest_framework.urls")),
 ]

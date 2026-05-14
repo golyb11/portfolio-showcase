@@ -1,234 +1,75 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Portfolio</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .login-container {
-            width: 100%;
-            max-width: 400px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            padding: 40px;
-        }
-        .login-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .login-header h1 {
-            font-size: 28px;
-            color: #333;
-            margin-bottom: 10px;
-        }
-        .login-header p {
-            color: #666;
-            font-size: 14px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 500;
-            font-size: 14px;
-        }
-        input[type="email"],
-        input[type="password"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-            font-family: inherit;
-            transition: border-color 0.3s;
-        }
-        input[type="email"]:focus,
-        input[type="password"]:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        .form-group.error input {
-            border-color: #dc3545;
-        }
-        .error-message {
-            color: #dc3545;
-            font-size: 12px;
-            margin-top: 5px;
-            display: none;
-        }
-        .form-group.error .error-message {
-            display: block;
-        }
-        .btn-login {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        .btn-login:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
-        .btn-login:active:not(:disabled) {
-            transform: translateY(0);
-        }
-        .btn-login:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        .demo-credentials {
-            background: #f0f4ff;
-            border-left: 4px solid #667eea;
-            padding: 12px;
-            border-radius: 4px;
-            margin-top: 20px;
-            font-size: 12px;
-            color: #555;
-            line-height: 1.5;
-        }
-        .demo-credentials strong {
-            color: #333;
-        }
-        .loading { 
-            display: none;
-            width: 14px;
-            height: 14px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 0.8s linear infinite;
-        }
-        .loading.active {
-            display: inline-block;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="csrf-token" content="{{ csrf_token }}" />
+  <title>Sign in — Portfolio</title>
+  <link rel="stylesheet" href="{% static 'css/main.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/components.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/auth.css' %}" />
 </head>
-<body>
-    <div class="login-container">
-        <div class="login-header">
-            <h1>Portfolio</h1>
-            <p>Sign in to your account</p>
-        </div>
-        
-        <div id="loginForm">
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required placeholder="user@example.com" autocomplete="email">
-                <span class="error-message"></span>
-            </div>
-            
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required placeholder="Enter your password" autocomplete="current-password">
-                <span class="error-message"></span>
-            </div>
-            
-            <button type="button" class="btn-login" id="submitBtn">
-                <span class="loading" id="loadingSpinner"></span>
-                <span class="btn-text">Sign In</span>
-            </button>
-        </div>
-        
-        <div class="demo-credentials">
-            <strong>Demo Credentials:</strong><br>
-            Email: alice@portfolio.dev<br>
-            Password: Demo@Password123!
-        </div>
+<body class="auth-page">
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+    <symbol id="icon-layers" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+      <polyline points="2 17 12 22 22 17"/>
+      <polyline points="2 12 12 17 22 12"/>
+    </symbol>
+  </svg>
+
+  <main class="auth-card" role="main">
+    <div class="auth-card__brand">
+      <span class="auth-card__brand-icon" aria-hidden="true">
+        <svg class="icon" width="28" height="28"><use href="#icon-layers"></use></svg>
+      </span>
+      <h1 class="auth-card__title">Portfolio</h1>
     </div>
+    <p class="auth-card__subtitle">Sign in to your account</p>
 
-    <script>
-        async function handleLogin() {
-            var emailInput = document.getElementById('email');
-            var passwordInput = document.getElementById('password');
-            var submitBtn = document.getElementById('submitBtn');
-            var loadingSpinner = document.getElementById('loadingSpinner');
+    <form class="auth-card__form" id="loginForm" novalidate autocomplete="on">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label" for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          class="input"
+          placeholder="alice@portfolio.dev"
+          autocomplete="email"
+          required
+        />
+        <div class="auth-error" id="emailError" aria-live="polite"></div>
+      </div>
 
-            var emailGroup = emailInput.closest('.form-group');
-            var passwordGroup = passwordInput.closest('.form-group');
-            emailGroup.classList.remove('error');
-            passwordGroup.classList.remove('error');
-            emailGroup.querySelector('.error-message').textContent = '';
-            passwordGroup.querySelector('.error-message').textContent = '';
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          class="input"
+          placeholder="Demo@Password123!"
+          autocomplete="current-password"
+          required
+        />
+        <div class="auth-error" id="passwordError" aria-live="polite"></div>
+      </div>
 
-            var email = emailInput.value.trim();
-            var password = passwordInput.value;
+      <button type="submit" class="btn btn--primary auth-card__submit" id="loginBtn">
+        Sign in
+      </button>
 
-            if (!email || !password) {
-                if (!email) {
-                    emailGroup.classList.add('error');
-                    emailGroup.querySelector('.error-message').textContent = 'Email is required';
-                }
-                if (!password) {
-                    passwordGroup.classList.add('error');
-                    passwordGroup.querySelector('.error-message').textContent = 'Password is required';
-                }
-                return;
-            }
+      <div class="auth-card__demo">
+        <strong>Demo credentials:</strong>
+        <code>alice@portfolio.dev</code><br />
+        <code>Demo@Password123!</code>
+      </div>
+    </form>
+  </main>
 
-            submitBtn.disabled = true;
-            loadingSpinner.classList.add('active');
-
-            try {
-                var response = await fetch('/api/auth/login/', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ email: email, password: password })
-                });
-
-                var text = await response.text();
-                console.log('Response text:', text);
-
-                var data = JSON.parse(text);
-
-                if (response.ok && data.status === 'success') {
-                    window.location.href = '/dashboard/';
-                } else {
-                    emailGroup.classList.add('error');
-                    passwordGroup.classList.add('error');
-                    emailGroup.querySelector('.error-message').textContent = data.message || 'Invalid credentials';
-                    passwordInput.value = '';
-                }
-            } catch (error) {
-                console.error('Login error:', error);
-                emailGroup.classList.add('error');
-                emailGroup.querySelector('.error-message').textContent = 'Network error: ' + error.message;
-            } finally {
-                submitBtn.disabled = false;
-                loadingSpinner.classList.remove('active');
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            var submitBtn = document.getElementById('submitBtn');
-            submitBtn.addEventListener('click', handleLogin);
-        });
-    </script>
+  <script src="{% static 'js/auth/login.js' %}"></script>
 </body>
 </html>

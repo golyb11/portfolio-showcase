@@ -13,43 +13,53 @@
     </div>
     <div class="page__header-actions">
       <button class="btn btn--secondary" id="refreshStats" aria-label="Refresh dashboard statistics">
-        <span aria-hidden="true">↻</span> Refresh
+        <svg class="icon" aria-hidden="true"><use href="#icon-refresh"></use></svg>
+        Refresh
       </button>
     </div>
   </header>
 
   <div class="stats-grid" role="list" aria-label="Dashboard statistics">
     <article class="stat-card" role="listitem" aria-label="Total tasks">
-      <div class="stat-card__icon" aria-hidden="true">⊞</div>
+      <div class="stat-card__icon" aria-hidden="true">
+        <svg class="icon"><use href="#icon-tasks"></use></svg>
+      </div>
       <div class="stat-card__body">
         <span class="stat-card__value" id="statTotalTasks" aria-live="polite">—</span>
         <span class="stat-card__label">Total Tasks</span>
       </div>
-      <div class="stat-card__trend stat-card__trend--up" aria-hidden="true"></div>
     </article>
     <article class="stat-card stat-card--success" role="listitem" aria-label="Completed tasks">
-      <div class="stat-card__icon" aria-hidden="true">✓</div>
+      <div class="stat-card__icon" aria-hidden="true">
+        <svg class="icon"><use href="#icon-check"></use></svg>
+      </div>
       <div class="stat-card__body">
         <span class="stat-card__value" id="statCompletedTasks" aria-live="polite">—</span>
         <span class="stat-card__label">Completed</span>
       </div>
     </article>
     <article class="stat-card stat-card--warning" role="listitem" aria-label="Pending tasks">
-      <div class="stat-card__icon" aria-hidden="true">◷</div>
+      <div class="stat-card__icon" aria-hidden="true">
+        <svg class="icon"><use href="#icon-clock"></use></svg>
+      </div>
       <div class="stat-card__body">
         <span class="stat-card__value" id="statPendingTasks" aria-live="polite">—</span>
         <span class="stat-card__label">Pending</span>
       </div>
     </article>
     <article class="stat-card stat-card--info" role="listitem" aria-label="Total uploads">
-      <div class="stat-card__icon" aria-hidden="true">⬡</div>
+      <div class="stat-card__icon" aria-hidden="true">
+        <svg class="icon"><use href="#icon-image"></use></svg>
+      </div>
       <div class="stat-card__body">
         <span class="stat-card__value" id="statTotalUploads" aria-live="polite">—</span>
         <span class="stat-card__label">Uploads</span>
       </div>
     </article>
     <article class="stat-card stat-card--purple" role="listitem" aria-label="Registered users">
-      <div class="stat-card__icon" aria-hidden="true">◈</div>
+      <div class="stat-card__icon" aria-hidden="true">
+        <svg class="icon"><use href="#icon-users"></use></svg>
+      </div>
       <div class="stat-card__body">
         <span class="stat-card__value" id="statTotalUsers" aria-live="polite">—</span>
         <span class="stat-card__label">Users</span>
@@ -61,7 +71,7 @@
     <section class="card chart-card" aria-labelledby="chartHeading">
       <header class="card__header">
         <h2 class="card__title" id="chartHeading">Tasks by Priority</h2>
-        <span class="card__badge">Live</span>
+        <span class="card__badge card__badge--live">Live</span>
       </header>
       <div class="card__body">
         <canvas
@@ -90,7 +100,7 @@
     <section class="card system-card" aria-labelledby="systemHeading">
       <header class="card__header">
         <h2 class="card__title" id="systemHeading">System Metrics</h2>
-        <span class="card__badge card__badge--live" aria-label="Live data">● Live</span>
+        <span class="card__badge card__badge--live" aria-label="Live data">Live</span>
       </header>
       <div class="card__body system-metrics" id="systemMetrics" aria-live="polite">
         <div class="metric">

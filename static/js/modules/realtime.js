@@ -2,106 +2,166 @@ import { showToast } from '../components/toast.js';
 
 let socket = null;
 let reconnectAttempts = 0;
-let maxReconnects = 10;
+const maxReconnects = 10;
 let reconnectDelay = 1000;
 let intentionalClose = false;
 let msgCount = 0;
+let reconnectHandle = null;
+let pingHandle = null;
 
 export function initRealtime() {
-  connect();
+  intentionalClose = false;
+  reconnectAttempts = 0;
+  msgCount = 0;
+  reconnectDelay = 1000;
   setupTerminalForm();
+  connect();
+}
+
+function getWsUrl() {
+  const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+  return `${scheme}://${window.location.host}/ws/chat/general/`;
 }
 
 function connect() {
-  if (socket && socket.readyState !== WebSocket.CLOSED) return;
+  if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
+    return;
+  }
 
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const wsURL = `${protocol}//${window.location.host}/ws/chat/general/`;
-
-  updateWSState('connecting');
+  const wsUrl = getWsUrl();
+  updateWSState('connecting', 'Connecting...');
 
   try {
-    socket = new WebSocket(wsURL);
+    socket = new WebSocket(wsUrl);
   } catch (e) {
-    updateWSState('disconnected');
+    console.error('[Realtime] WebSocket constructor failed:', e);
+    updateWSState('disconnected', 'Disconnected');
     scheduleReconnect();
     return;
   }
 
-  socket.addEventListener('open', () => {
-    updateWSState('connected');
-    reconnectAttempts = 0;
-    reconnectDelay = 1000;
-    appendLine({ type: 'connection', content: '[Connection established]', timestamp: new Date().toISOString() });
+  socket.addEventListener('open', handleOpen);
+  socket.addEventListener('message', handleSocketMessage);
+  socket.addEventListener('close', handleClose);
+  socket.addEventListener('error', handleError);
+}
+
+function handleOpen() {
+  updateWSState('connected', 'Connected');
+  reconnectAttempts = 0;
+  reconnectDelay = 1000;
+  updateReconnectCount();
+  appendLine({
+    type: 'connection',
+    content: '[Connection established]',
+    timestamp: new Date().toISOString(),
   });
 
-  socket.addEventListener('message', (event) => {
-    try {
-      const data = JSON.parse(event.data);
-      handleMessage(data);
-    } catch {
-      appendLine({ type: 'system', content: event.data, timestamp: new Date().toISOString() });
+  if (pingHandle) clearInterval(pingHandle);
+  pingHandle = setInterval(() => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      try {
+        socket.send(JSON.stringify({ type: 'ping' }));
+      } catch (err) {
+        console.warn('[Realtime] Ping failed:', err);
+      }
     }
-  });
+  }, 30000);
+}
 
-  socket.addEventListener('close', (event) => {
-    updateWSState('disconnected');
-    if (!intentionalClose) {
-      appendLine({
-        type: 'error',
-        content: `[Connection closed (${event.code}). Reconnecting...]`,
-        timestamp: new Date().toISOString(),
-      });
-      scheduleReconnect();
-    }
-  });
+function handleSocketMessage(event) {
+  let data;
+  try {
+    data = JSON.parse(event.data);
+  } catch {
+    appendLine({
+      type: 'system',
+      content: String(event.data),
+      timestamp: new Date().toISOString(),
+    });
+    return;
+  }
+  handleMessage(data);
+}
 
-  socket.addEventListener('error', () => {
-    updateWSState('disconnected');
-    appendLine({ type: 'error', content: '[Connection error]', timestamp: new Date().toISOString() });
+function handleClose(event) {
+  if (pingHandle) {
+    clearInterval(pingHandle);
+    pingHandle = null;
+  }
+  updateWSState('disconnected', 'Disconnected');
+  if (intentionalClose) return;
+
+  appendLine({
+    type: 'error',
+    content: `[Connection closed (${event.code}). Reconnecting...]`,
+    timestamp: new Date().toISOString(),
+  });
+  scheduleReconnect();
+}
+
+function handleError(e) {
+  console.error('[Realtime] WebSocket error:', e);
+  updateWSState('disconnected', 'Disconnected');
+  appendLine({
+    type: 'error',
+    content: '[Connection error]',
+    timestamp: new Date().toISOString(),
   });
 }
 
 function scheduleReconnect() {
+  if (intentionalClose) return;
   if (reconnectAttempts >= maxReconnects) {
-    appendLine({ type: 'error', content: '[Max reconnection attempts reached]', timestamp: new Date().toISOString() });
+    appendLine({
+      type: 'error',
+      content: '[Max reconnection attempts reached]',
+      timestamp: new Date().toISOString(),
+    });
+    updateWSState('disconnected', 'Disconnected (max retries)');
     return;
   }
-  reconnectAttempts++;
+  reconnectAttempts += 1;
   updateReconnectCount();
-  document.getElementById('wsStatusText')?.textContent = `Reconnecting (${reconnectAttempts}/${maxReconnects})`;
+  updateWSState('connecting', `Reconnecting (${reconnectAttempts}/${maxReconnects})`);
 
-  setTimeout(() => {
+  if (reconnectHandle) clearTimeout(reconnectHandle);
+  reconnectHandle = setTimeout(() => {
+    reconnectHandle = null;
     connect();
   }, reconnectDelay);
 
-  reconnectDelay = Math.min(reconnectDelay * 1.5, 30000);
+  reconnectDelay = Math.min(reconnectDelay * 1.6, 30000);
 }
 
 function handleMessage(data) {
   switch (data.type) {
     case 'chat_message':
-      appendLine({ type: 'user', author: data.author, content: data.content, timestamp: data.timestamp });
+      appendLine({
+        type: 'user',
+        author: data.author,
+        content: data.content,
+        timestamp: data.timestamp,
+      });
       incrementMsgCount();
       break;
-
     case 'connection_established':
       appendLine({ type: 'connection', content: data.message, timestamp: data.timestamp });
       break;
-
     case 'server_status':
       updateServerStatus(data);
       break;
-
     case 'pong':
       break;
-
     case 'error':
       appendLine({ type: 'error', content: data.message, timestamp: data.timestamp });
       break;
-
     default:
-      appendLine({ type: 'system', content: JSON.stringify(data), timestamp: new Date().toISOString() });
+      appendLine({
+        type: 'system',
+        content: JSON.stringify(data),
+        timestamp: new Date().toISOString(),
+      });
   }
 }
 
@@ -112,15 +172,27 @@ function appendLine({ type, author, content, timestamp }) {
   const line = document.createElement('div');
   line.className = `terminal-line terminal-line--${type}`;
 
-  const time = timestamp ? new Date(timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
-  const prefix = type === 'user' ? `<span style="color:#60a5fa">${escapeHTML(author || 'Anonymous')}</span>` : '';
+  const timeSpan = document.createElement('span');
+  timeSpan.className = 'terminal-line__time';
+  timeSpan.textContent = `[${timestamp ? new Date(timestamp).toLocaleTimeString() : new Date().toLocaleTimeString()}] `;
+  line.appendChild(timeSpan);
 
-  line.innerHTML = `<span style="color:#6b6f85">[${time}]</span> ${prefix}${prefix ? ': ' : ''}${escapeHTML(content)}`;
+  if (type === 'user' && author) {
+    const authorSpan = document.createElement('span');
+    authorSpan.className = 'terminal-line__author';
+    authorSpan.textContent = `${author}: `;
+    line.appendChild(authorSpan);
+  }
+
+  const contentSpan = document.createElement('span');
+  contentSpan.className = 'terminal-line__content';
+  contentSpan.textContent = content;
+  line.appendChild(contentSpan);
 
   output.appendChild(line);
   output.scrollTop = output.scrollHeight;
 
-  if (output.children.length > 500) {
+  while (output.children.length > 500) {
     output.removeChild(output.firstElementChild);
   }
 }
@@ -134,28 +206,26 @@ function updateServerStatus(data) {
   if (time) time.textContent = new Date(data.timestamp).toLocaleTimeString();
 }
 
-function updateWSState(state) {
+function updateWSState(state, label) {
   const dot = document.querySelector('.ws-dot');
   const text = document.getElementById('wsStatusText');
   if (dot) {
-    dot.className = 'ws-dot';
-    dot.classList.add(`ws-dot--${state}`);
+    dot.className = `ws-dot ws-dot--${state}`;
   }
   if (text) {
-    const labels = { connected: 'Connected', disconnected: 'Disconnected', connecting: 'Connecting...' };
-    text.textContent = labels[state] || state;
+    text.textContent = label;
   }
 }
 
 function updateReconnectCount() {
   const el = document.getElementById('infoReconnects');
-  if (el) el.textContent = reconnectAttempts;
+  if (el) el.textContent = String(reconnectAttempts);
 }
 
 function incrementMsgCount() {
-  msgCount++;
+  msgCount += 1;
   const el = document.getElementById('infoMsgCount');
-  if (el) el.textContent = msgCount;
+  if (el) el.textContent = String(msgCount);
 }
 
 function setupTerminalForm() {
@@ -173,26 +243,37 @@ function setupTerminalForm() {
       return;
     }
 
-    socket.send(JSON.stringify({
-      type: 'chat_message',
-      author: 'You',
-      content: content,
-    }));
-    input.value = '';
-    input.focus();
+    try {
+      socket.send(
+        JSON.stringify({
+          type: 'chat_message',
+          author: 'You',
+          content,
+        })
+      );
+      input.value = '';
+      input.focus();
+    } catch (err) {
+      console.error('[Realtime] Failed to send message:', err);
+      showToast({ type: 'error', message: 'Failed to send message' });
+    }
   });
 }
 
 export function disconnectRealtime() {
   intentionalClose = true;
+  if (reconnectHandle) {
+    clearTimeout(reconnectHandle);
+    reconnectHandle = null;
+  }
+  if (pingHandle) {
+    clearInterval(pingHandle);
+    pingHandle = null;
+  }
   if (socket) {
-    socket.close(1000, 'User navigated away');
+    try {
+      socket.close(1000, 'User navigated away');
+    } catch {}
     socket = null;
   }
-}
-
-function escapeHTML(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
 }

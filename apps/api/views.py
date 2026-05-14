@@ -31,7 +31,7 @@ from .pagination import StandardResultsPagination
 class TaskLogViewSet(viewsets.ModelViewSet):
     queryset = TaskLog.objects.select_related("assigned_to").all()
     serializer_class = TaskLogSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ["status", "priority", "assigned_to"]
     search_fields = ["title", "description", "tags"]
@@ -85,7 +85,7 @@ class TaskLogViewSet(viewsets.ModelViewSet):
 class UploadedMediaViewSet(viewsets.ModelViewSet):
     queryset = UploadedMedia.objects.select_related("uploaded_by").all()
     serializer_class = UploadedMediaSerializer
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+    permission_classes = [AllowAny]
     http_method_names = ["get", "post", "delete", "head", "options"]
 
     ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp"}
@@ -138,7 +138,7 @@ class UploadedMediaViewSet(viewsets.ModelViewSet):
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def dashboard_stats(request):
     cache_key = "dashboard_stats"
     cached = cache.get(cache_key)
@@ -242,7 +242,7 @@ def xss_test(request):
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def system_metrics(request):
     try:
         import psutil

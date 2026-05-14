@@ -19,3 +19,5 @@ build/
 *.pid
 celerybeat-schedule
 .ipynb_checkpoints/
+check_project.bat
+.kiro/

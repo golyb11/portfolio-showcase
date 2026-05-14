@@ -1,53 +1,95 @@
-const modal = document.getElementById('globalModal');
-const modalTitle = document.getElementById('modalTitle');
-const modalBody = document.getElementById('modalBody');
-const modalFooter = document.getElementById('modalFooter');
-const modalClose = document.getElementById('modalClose');
+let boundOnce = false;
 
-export function showModal({ title = 'Modal', body = '', footer = '', onClose = null } = {}) {
-  if (!modal) return;
-
-  modalTitle.textContent = title;
-  modalBody.innerHTML = typeof body === 'string' ? body : '';
-  if (typeof body === 'object' && body instanceof HTMLElement) {
-    modalBody.innerHTML = '';
-    modalBody.appendChild(body);
-  }
-  modalFooter.innerHTML = footer;
-
-  modal._onCloseCallback = onClose;
-
-  modal.showModal();
+function els() {
+  return {
+    modal: document.getElementById('globalModal'),
+    title: document.getElementById('modalTitle'),
+    body: document.getElementById('modalBody'),
+    footer: document.getElementById('modalFooter'),
+    close: document.getElementById('modalClose'),
+  };
 }
 
-export function closeModal() {
-  if (!modal) return;
-  modal.close();
-  if (typeof modal._onCloseCallback === 'function') {
-    modal._onCloseCallback();
-    modal._onCloseCallback = null;
-  }
-}
+function bindGlobalHandlers() {
+  if (boundOnce) return;
+  boundOnce = true;
 
-if (modal && modalClose) {
-  modalClose.addEventListener('click', closeModal);
+  const { modal, close } = els();
+  if (!modal) return;
+
+  if (close) close.addEventListener('click', closeModal);
 
   modal.addEventListener('click', (e) => {
-    if (e.target === modal) {
-      closeModal();
-    }
+    const rect = modal.getBoundingClientRect();
+    const inDialog =
+      e.clientX >= rect.left &&
+      e.clientX <= rect.right &&
+      e.clientY >= rect.top &&
+      e.clientY <= rect.bottom;
+    if (!inDialog) closeModal();
   });
 
   modal.addEventListener('cancel', (e) => {
     e.preventDefault();
     closeModal();
   });
+}
 
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modal.open) {
-      closeModal();
+export function showModal({ title = 'Modal', body = '', footer = '', onClose = null } = {}) {
+  const { modal, title: titleEl, body: bodyEl, footer: footerEl } = els();
+  if (!modal || !titleEl || !bodyEl || !footerEl) {
+    console.warn('[Modal] Modal DOM not available');
+    return;
+  }
+
+  bindGlobalHandlers();
+
+  titleEl.textContent = title;
+
+  bodyEl.innerHTML = '';
+  if (body instanceof HTMLElement) {
+    bodyEl.appendChild(body);
+  } else if (typeof body === 'string') {
+    bodyEl.innerHTML = body;
+  }
+
+  footerEl.innerHTML = typeof footer === 'string' ? footer : '';
+
+  modal._onCloseCallback = typeof onClose === 'function' ? onClose : null;
+
+  if (typeof modal.showModal === 'function') {
+    try {
+      modal.showModal();
+    } catch (err) {
+      modal.setAttribute('open', '');
     }
-  });
+  } else {
+    modal.setAttribute('open', '');
+  }
+}
+
+export function closeModal() {
+  const { modal } = els();
+  if (!modal) return;
+
+  if (typeof modal.close === 'function') {
+    try {
+      modal.close();
+    } catch {
+      modal.removeAttribute('open');
+    }
+  } else {
+    modal.removeAttribute('open');
+  }
+
+  if (typeof modal._onCloseCallback === 'function') {
+    try {
+      modal._onCloseCallback();
+    } catch (err) {
+      console.warn('[Modal] onClose error:', err);
+    }
+    modal._onCloseCallback = null;
+  }
 }
 
 export default { showModal, closeModal };

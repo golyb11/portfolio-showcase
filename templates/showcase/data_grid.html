@@ -40,10 +40,12 @@
     </div>
     <div class="toolbar__actions">
       <button class="btn btn--primary" id="addTaskBtn" aria-label="Add new task">
-        <span aria-hidden="true">+</span> Add Task
+        <svg class="icon" aria-hidden="true"><use href="#icon-plus"></use></svg>
+        Add Task
       </button>
       <button class="btn btn--secondary" id="exportCsvBtn" aria-label="Export tasks to CSV">
-        <span aria-hidden="true">↓</span> Export CSV
+        <svg class="icon" aria-hidden="true"><use href="#icon-download"></use></svg>
+        Export CSV
       </button>
     </div>
   </div>
@@ -54,17 +56,17 @@
         <tr>
           <th scope="col" class="col-drag" aria-label="Drag to reorder"></th>
           <th scope="col" class="col-title sortable" data-sort="title" tabindex="0" aria-sort="none">
-            Title <span class="sort-icon" aria-hidden="true">⇅</span>
+            Title <span class="sort-icon" aria-hidden="true"></span>
           </th>
           <th scope="col" class="col-status sortable" data-sort="status" tabindex="0" aria-sort="none">
-            Status <span class="sort-icon" aria-hidden="true">⇅</span>
+            Status <span class="sort-icon" aria-hidden="true"></span>
           </th>
           <th scope="col" class="col-priority sortable" data-sort="priority" tabindex="0" aria-sort="none">
-            Priority <span class="sort-icon" aria-hidden="true">⇅</span>
+            Priority <span class="sort-icon" aria-hidden="true"></span>
           </th>
           <th scope="col" class="col-assigned">Assigned To</th>
           <th scope="col" class="col-due sortable" data-sort="due_date" tabindex="0" aria-sort="none">
-            Due Date <span class="sort-icon" aria-hidden="true">⇅</span>
+            Due Date <span class="sort-icon" aria-hidden="true"></span>
           </th>
           <th scope="col" class="col-actions">Actions</th>
         </tr>
@@ -81,13 +83,13 @@
   </div>
 
   <nav class="pagination" id="gridPagination" aria-label="Table pagination">
-    <button class="btn btn--ghost" id="prevPage" aria-label="Previous page" disabled>← Prev</button>
+    <button class="btn btn--ghost" id="prevPage" aria-label="Previous page" disabled>Prev</button>
     <span class="pagination__info" id="paginationInfo" aria-live="polite">Page 1</span>
-    <button class="btn btn--ghost" id="nextPage" aria-label="Next page">Next →</button>
+    <button class="btn btn--ghost" id="nextPage" aria-label="Next page">Next</button>
   </nav>
 
   <p class="hint-text" aria-label="Usage hint">
-    <span aria-hidden="true">💡</span> Double-click any row to edit inline. Drag the ⠿ handle to reorder.
+    Double-click any row to edit inline. Drag the handle to reorder.
   </p>
 
 </section>
