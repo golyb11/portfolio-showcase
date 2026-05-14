@@ -7,6 +7,7 @@
 Стек: Python 3.12, Django 5, DRF, Channels, Celery, Postgres 16, Redis 7. На фронте семантическая вёрстка и ванильный JavaScript (ES6 модули), без React/Vue.
 
 Структура примерно такая:
+!!!проект очень сложный в бэкэнд части все кнопки логирование и тд осуществляется с помощью postgreSQL, redis, web-server-а daphne и celery-worker. Поэтому я не могу захостить его на бесплатный Vercel.
 - `config/` — настройки Django, asgi, celery
 - `apps/core/` — кастомный User (UUID, логин через email), абстрактная модель с timestamps
 - `apps/showcase/` — основные фичи (таски, медиа, чат, вебсокеты)
