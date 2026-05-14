@@ -47,4 +47,10 @@ Bleach на всём пользовательском вводе, CSP через
 
 ## Фронтенд
 
-Spa-подобная навигация без перезагрузки (Fetch + History API), но если JS отключен — обычные django-переходы работают. Тёмная тема по умолчанию, светлая сохраняется в localStorage. Все DOM-манипуляции через textContent (не innerHTML для пользовательских данных).
+Spa-подобная навигация без перезагрузки (Fetch + History API), но если JS отключен — обычные django-переходы работают. Тёмная тема по умолчанию, светлая сохраняется в localStorage. Все DOM-манипуляции через textContent (не innerHTML для пользовательских данных).<img width="1862" height="889" alt="изображение" src="https://github.com/user-attachments/assets/60d0cf86-dc20-4f88-9976-0dd113b6078d" />
+<img width="1861" height="904" alt="изображение" src="https://github.com/user-attachments/assets/75b2272a-3b64-43a5-8e2f-db43b4603f40" /><img width="1842" height="660" alt="изображение" src="https://github.com/user-attachments/assets/e69cc300-b29d-4052-a707-042db280e5d7" /><img width="1867" height="901" alt="изображение" src="https://github.com/user-attachments/assets/01117bd7-982f-4ae2-b1b3-ab9e2c26219e" /><img width="1866" height="914" alt="изображение" src="https://github.com/user-attachments/assets/733c4976-6b6c-4ed8-9b5d-6cf3430e3afb" />
+
+
+
+
+
